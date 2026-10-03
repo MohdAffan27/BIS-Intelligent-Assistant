@@ -27,7 +27,7 @@ export function ChatPanel({ initial }: { initial?: string | undefined }) {
 
   async function run(question: string, base: Msg[]) {
     setLoading(true);
-    const history = base.filter((m) => m.role === "user").map((m) => m.text);
+    const history = base.slice(0, -1).filter((m) => !m.error).map((m) => ({ role: m.role, text: m.text }));
     try {
       const result = await ask({ data: { question, history, lang } });
       setMsgs([...base, { id: ++idc.current, role: "assistant", text: result.answer, result }]);
@@ -75,7 +75,7 @@ export function ChatPanel({ initial }: { initial?: string | undefined }) {
       <div className="flex-1 space-y-5 overflow-y-auto p-4" aria-live="polite" role="log">
         {msgs.length === 0 && (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground">Answers come only from the Demo Knowledge Base, with sources. If no source exists, the assistant says so.</p>
+            <p className="text-muted-foreground">Answers are written by AI using only the Demo Knowledge Base, with sources. If no source exists, the assistant says so.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {STARTERS.map((s) => (
                 <Button key={s} variant="secondary" size="sm" onClick={() => send(s)}>{s}</Button>
@@ -135,7 +135,7 @@ export function ChatPanel({ initial }: { initial?: string | undefined }) {
           ),
         )}
         {loading && (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Searching the knowledge base…</p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Thinking…</p>
         )}
         <div ref={end} />
       </div>

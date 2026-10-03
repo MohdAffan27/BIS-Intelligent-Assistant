@@ -4,7 +4,10 @@ import { KB, KB_LABEL, OFFICIAL } from "./kb";
 
 const Input = z.object({
   question: z.string().trim().min(2).max(500),
-  history: z.array(z.string().max(500)).max(10).default([]),
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(2000) }))
+    .max(12)
+    .default([]),
   lang: z.enum(["en", "hi"]).default("en"),
 });
 
@@ -17,32 +20,32 @@ export type AskResult = {
   kb: string;
 };
 
-const tokenize = (s: string) => s.toLowerCase().replace(/[^a-z0-9/\s]/g, " ").split(/\s+/).filter(Boolean);
+const FOLLOW: Record<string, string> = {
+  standards: "How do I find the standard for my product?",
+  certification: "Is certification mandatory for my product?",
+  labs: "Where can my product be tested?",
+  hallmarking: "How do I verify a HUID?",
+  consumer: "How do I raise a complaint?",
+};
 
-// Retrieval step: keyword scoring over the Demo Knowledge Base.
-// Answers are extractive — only text present in retrieved entries is returned.
 export const askBis = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data }): Promise<AskResult> => {
-    const context = [...data.history.slice(-2), data.question].join(" ");
-    const q = tokenize(context);
-    const qs = context.toLowerCase();
-    const scored = KB.map((e) => {
-      let s = 0;
-      for (const k of e.keywords) if (k.includes(" ") ? qs.includes(k) : q.includes(k)) s += k.includes(" ") ? 3 : 2;
-      for (const w of tokenize(e.title)) if (w.length > 3 && q.includes(w)) s += 1;
-      return { e, s };
-    })
-      .filter((x) => x.s >= 2)
-      .sort((a, b) => b.s - a.s)
-      .slice(0, 3);
+    const { generateGrounded } = await import("./ai.server");
+    const raw = await generateGrounded(data.question, data.history, data.lang);
 
-    if (scored.length === 0) {
+    const cited: string[] = [];
+    for (const m of raw.matchAll(/\[([a-z-]+)\]/g)) {
+      const id = m[1]!;
+      if (KB.some((e) => e.id === id) && !cited.includes(id)) cited.push(id);
+    }
+
+    if (raw.includes("NO_SOURCE") || cited.length === 0) {
       return {
         answer:
           data.lang === "hi"
-            ? "डेमो नॉलेज बेस में इस प्रश्न का कोई स्रोत नहीं मिला। कृपया आधिकारिक BIS वेबसाइट देखें।"
-            : "I could not find a source for this in the Demo Knowledge Base, so I won't guess. Please check the official BIS website.",
+            ? "डेमो नॉलेज बेस में इस प्रश्न का कोई स्रोत नहीं मिला, इसलिए मैं अनुमान नहीं लगाऊँगा। कृपया आधिकारिक BIS वेबसाइट देखें।"
+            : "I couldn't find a source for this in the Demo Knowledge Base, so I won't guess. Please check the official BIS website.",
         grounded: false,
         sources: [{ id: "official", title: "Bureau of Indian Standards", label: "Official website", url: OFFICIAL, excerpt: "" }],
         followUps: ["How do I verify a hallmark?", "What is BIS certification?", "How do I raise a complaint?"],
@@ -50,25 +53,19 @@ export const askBis = createServerFn({ method: "POST" })
       };
     }
 
-    const answer = scored.map((x, i) => `${x.e.text} [${i + 1}]`).join("\n\n");
-    const topics = new Set(scored.map((x) => x.e.topic));
-    const followUps = KB.filter((e) => topics.has(e.topic) && !scored.some((x) => x.e.id === e.id))
-      .slice(0, 3)
-      .map((e) => `Tell me about: ${e.title.toLowerCase()}`);
+    const answer = raw.replace(/\[([a-z-]+)\]/g, (s, id: string) => {
+      const n = cited.indexOf(id);
+      return n >= 0 ? `[${n + 1}]` : "";
+    });
+    const entries = cited.map((id) => KB.find((e) => e.id === id)!);
+    const topics = [...new Set(entries.map((e) => e.topic))];
+    const others = Object.keys(FOLLOW).filter((t) => !topics.includes(t as never));
+    const followUps = [...topics, ...others].slice(0, 3).map((t) => FOLLOW[t]!).filter((f) => f !== data.question);
 
     return {
-      answer:
-        data.lang === "hi"
-          ? `(हिंदी अनुवाद डेमो में उपलब्ध नहीं है — अंग्रेज़ी स्रोत पाठ नीचे है)\n\n${answer}`
-          : answer,
+      answer,
       grounded: true,
-      sources: scored.map((x) => ({
-        id: x.e.id,
-        title: x.e.title,
-        label: x.e.sourceLabel,
-        url: x.e.sourceUrl,
-        excerpt: x.e.text,
-      })),
+      sources: entries.map((e) => ({ id: e.id, title: e.title, label: e.sourceLabel, url: e.sourceUrl, excerpt: e.text })),
       followUps,
       kb: KB_LABEL,
     };
