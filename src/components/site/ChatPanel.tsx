@@ -22,8 +22,8 @@ export function ChatPanel({ initial }: { initial?: string | undefined }) {
   const end = useRef<HTMLDivElement>(null);
   const idc = useRef(0);
 
-  useEffect(() => ref.current?.focus(), [loading]);
-  useEffect(() => end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), [msgs, loading]);
+  useEffect(() => { ref.current?.focus(); }, [loading]);
+  useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [msgs, loading]);
 
   async function run(question: string, base: Msg[]) {
     setLoading(true);
