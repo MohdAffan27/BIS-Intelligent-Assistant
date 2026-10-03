@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AskRouteImport } from './routes/ask'
+import { Route as CertificationRouteImport } from './routes/certification'
+import { Route as ConsumerHelpRouteImport } from './routes/consumer-help'
+import { Route as HallmarkingRouteImport } from './routes/hallmarking'
+import { Route as StandardsRouteImport } from './routes/standards'
+import { Route as TestingLabsRouteImport } from './routes/testing-labs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AskRoute = AskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertificationRoute = CertificationRouteImport.update({
+  id: '/certification',
+  path: '/certification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsumerHelpRoute = ConsumerHelpRouteImport.update({
+  id: '/consumer-help',
+  path: '/consumer-help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HallmarkingRoute = HallmarkingRouteImport.update({
+  id: '/hallmarking',
+  path: '/hallmarking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StandardsRoute = StandardsRouteImport.update({
+  id: '/standards',
+  path: '/standards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestingLabsRoute = TestingLabsRouteImport.update({
+  id: '/testing-labs',
+  path: '/testing-labs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
+  '/certification': typeof CertificationRoute
+  '/consumer-help': typeof ConsumerHelpRoute
+  '/hallmarking': typeof HallmarkingRoute
+  '/standards': typeof StandardsRoute
+  '/testing-labs': typeof TestingLabsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
+  '/certification': typeof CertificationRoute
+  '/consumer-help': typeof ConsumerHelpRoute
+  '/hallmarking': typeof HallmarkingRoute
+  '/standards': typeof StandardsRoute
+  '/testing-labs': typeof TestingLabsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
+  '/certification': typeof CertificationRoute
+  '/consumer-help': typeof ConsumerHelpRoute
+  '/hallmarking': typeof HallmarkingRoute
+  '/standards': typeof StandardsRoute
+  '/testing-labs': typeof TestingLabsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ask'
+    | '/certification'
+    | '/consumer-help'
+    | '/hallmarking'
+    | '/standards'
+    | '/testing-labs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ask'
+    | '/certification'
+    | '/consumer-help'
+    | '/hallmarking'
+    | '/standards'
+    | '/testing-labs'
+  id:
+    | '__root__'
+    | '/'
+    | '/ask'
+    | '/certification'
+    | '/consumer-help'
+    | '/hallmarking'
+    | '/standards'
+    | '/testing-labs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AskRoute: typeof AskRoute
+  CertificationRoute: typeof CertificationRoute
+  ConsumerHelpRoute: typeof ConsumerHelpRoute
+  HallmarkingRoute: typeof HallmarkingRoute
+  StandardsRoute: typeof StandardsRoute
+  TestingLabsRoute: typeof TestingLabsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ask': {
+      id: '/ask'
+      path: '/ask'
+      fullPath: '/ask'
+      preLoaderRoute: typeof AskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/certification': {
+      id: '/certification'
+      path: '/certification'
+      fullPath: '/certification'
+      preLoaderRoute: typeof CertificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consumer-help': {
+      id: '/consumer-help'
+      path: '/consumer-help'
+      fullPath: '/consumer-help'
+      preLoaderRoute: typeof ConsumerHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hallmarking': {
+      id: '/hallmarking'
+      path: '/hallmarking'
+      fullPath: '/hallmarking'
+      preLoaderRoute: typeof HallmarkingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/standards': {
+      id: '/standards'
+      path: '/standards'
+      fullPath: '/standards'
+      preLoaderRoute: typeof StandardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/testing-labs': {
+      id: '/testing-labs'
+      path: '/testing-labs'
+      fullPath: '/testing-labs'
+      preLoaderRoute: typeof TestingLabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AskRoute: AskRoute,
+  CertificationRoute: CertificationRoute,
+  ConsumerHelpRoute: ConsumerHelpRoute,
+  HallmarkingRoute: HallmarkingRoute,
+  StandardsRoute: StandardsRoute,
+  TestingLabsRoute: TestingLabsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
