@@ -12,7 +12,7 @@ type Msg = { id: number; role: "user" | "assistant"; text: string; result?: AskR
 
 const STARTERS = ["How do I verify a hallmark on gold jewellery?", "What is BIS product certification?", "How do I raise a complaint?"];
 
-export function ChatPanel({ initial }: { initial?: string }) {
+export function ChatPanel({ initial }: { initial?: string | undefined }) {
   const ask = useServerFn(askBis);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState(initial ?? "");
