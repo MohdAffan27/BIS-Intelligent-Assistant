@@ -30,7 +30,8 @@ export function ChatPanel({ initial }: { initial?: string | undefined }) {
     const history = base.slice(0, -1).filter((m) => !m.error).map((m) => ({ role: m.role, text: m.text }));
     try {
       const result = await ask({ data: { question, history, lang } });
-      setMsgs([...base, { id: ++idc.current, role: "assistant", text: result.answer, result }]);
+      if (!result.ok) setMsgs([...base, { id: ++idc.current, role: "assistant", text: result.message, error: true }]);
+      else setMsgs([...base, { id: ++idc.current, role: "assistant", text: result.answer, result }]);
     } catch {
       setMsgs([...base, { id: ++idc.current, role: "assistant", text: "Something went wrong while fetching an answer.", error: true }]);
     } finally {
@@ -97,7 +98,13 @@ export function ChatPanel({ initial }: { initial?: string | undefined }) {
                 </div>
               ) : (
                 <>
-                  {m.result && !m.result.grounded && (
+                  {m.result && (
+                    <p className="mb-2 inline-block rounded bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                      {m.result.mode === "ai" ? "AI grounded mode" : "Knowledge Base retrieval"}
+                    </p>
+                  )}
+                  {m.result?.notice && <p className="mb-2 text-sm font-medium text-accent-foreground">{m.result.notice}</p>}
+                  {m.result && m.result.status !== "answered" && (
                     <p className="mb-2 inline-flex items-center gap-1 text-xs font-medium text-accent-foreground"><AlertTriangle className="h-3.5 w-3.5" /> No matching source</p>
                   )}
                   <p className="whitespace-pre-line leading-relaxed">{m.text}</p>
